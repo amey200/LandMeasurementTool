@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Land Measurement IN GUNTA</title>
+    <style>
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+        .container {
+            width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        label {
+            font-size: 16px;
+        }
+        input[type="text"] {
+            width: calc(100% - 10px);
+            padding: 8px;
+            margin-bottom: 15px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            text-align: center;
+            color: red; /* Error messages in red */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Land Measurement IN GUNTA</h1>
+        <form id="measurementForm">
+            <label for="a">Side a:</label>
+            <input type="text" id="a" name="a" required><br>
+            
+            <label for="b">Side b:</label>
+            <input type="text" id="b" name="b" required><br>
+            
+            <label for="c">Side c:</label>
+            <input type="text" id="c" name="c" required><br>
+            
+            <label for="d">Side d:</label>
+            <input type="text" id="d" name="d" required><br>
+            
+            <label for="diagonal">Diagonal:</label>
+            <input type="text" id="diagonal" name="diagonal" required><br>
+            
+            <button type="button" onclick="calculateGunta()">Calculate Area in Gunta Unit</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function calculateGunta() {
+            var a = parseFloat(document.getElementById('a').value);
+            var b = parseFloat(document.getElementById('b').value);
+            var c = parseFloat(document.getElementById('c').value);
+            var d = parseFloat(document.getElementById('d').value);
+            var diagonal = parseFloat(document.getElementById('diagonal').value);
+
+            // Validate if all inputs are numbers
+            if (isNaN(a) || isNaN(b) || isNaN(c) || isNaN(d) || isNaN(diagonal)) {
+                document.getElementById('result').innerText = "Error: Please enter valid numeric values for all fields.";
+                return;
+            }
+
+            // Check if the diagonal is logically valid
+            if (diagonal >= (a + b) || diagonal >= (c + d)) {
+                document.getElementById('result').innerText = "Error: The diagonal must be smaller than the sum of any two adjacent sides.";
+                return;
+            }
+
+            // Compute semi-perimeters
+            var s1 = (a + b + diagonal) / 2;
+            var s2 = (c + d + diagonal) / 2;
+
+            // Calculate Gunta values
+            var Gunta1 = Math.sqrt(s1 * (s1 - a) * (s1 - b) * (s1 - diagonal)) / 101.17;
+            var Gunta2 = Math.sqrt(s2 * (s2 - c) * (s2 - d) * (s2 - diagonal)) / 101.17;
+
+            // Validate if calculation results in NaN
+            if (isNaN(Gunta1) || isNaN(Gunta2)) {
+                document.getElementById('result').innerText = "Error: Invalid input values. Please check the diagonal and side lengths.";
+                return;
+            }
+
+            var Gunta = Gunta1 + Gunta2;
+            document.getElementById('result').innerHTML = `<span style="color: green;">Area Is: ${Gunta.toFixed(2)} Gunta</span>`;
+        }
+    </script>
+</body>
+</html>
