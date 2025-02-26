@@ -4,207 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Land Measurement Tool</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Roboto', sans-serif;
-            background-color: #e9f5db; /* Light green background for a fresh look */
-        }
-
-        #map {
-            height: 100vh;
-            width: 100%;
-            box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.25); /* Adds depth to the map */
-        }
-
-        .menu-section {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background-color: #ffffffdd; /* Slightly transparent white for modern feel */
-            padding: 15px;
-            border-radius: 8px;
-            z-index: 1000;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Soft shadow for a floating effect */
-        }
-
-        .menu-item {
-            cursor: pointer;
-            margin-bottom: 10px;
-            color: #5c5c5c; /* Darker text for better readability */
-            padding: 10px 15px;
-            border-radius: 4px;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .menu-item:hover {
-            background-color: #ff7e67; /* Warm coral for hover state */
-            color: #fff;
-            border: 1px solid #ff7e67; /* Border to maintain size on hover */
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <header class="header">
+        <div class="header-container">
+            <h1 class="title">Land Measurement Tool</h1>
+            <nav class="nav">
+                <a href="#abstract" class="nav-link" onclick="scrollToSection('abstract')">Abstract</a>
+                <a href="#introduction" class="nav-link" onclick="scrollToSection('introduction')">Introduction</a>
+                <a href="#problem" class="nav-link" onclick="scrollToSection('problem')">Problem Statement</a>
+                <a href="#conclusion" class="nav-link" onclick="scrollToSection('conclusion')">Conclusion</a>
+            </nav>
+        </div>
+    </header>
 
-<div id="map"></div>
-
-<div class="menu-section">
-    <div class="menu-item" onclick="toggleDrawControl()">Select Points</div>
-    <div class="menu-item" onclick="clearPoints()">Clear Points</div>
-    <div class="menu-item" onclick="calculateArea()">Calculate Area</div>
-</div>
-
-<div class="search-section">
-    <input type="text" id="searchInput" placeholder="Search location...">
-    <button onclick="searchLocation()">Search</button>
-    <button onclick="showCurrentLocation()">Current Location</button>
-</div>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geometryutil/0.9.0/leaflet.geometryutil.min.js"></script>
-<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-<script>
-    var map = L.map('map').setView([51.505, -0.09], 13);
-
-    var normalMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap contributors'
-    });
-
-    var satelliteMapLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
-        attribution: '© Esri'
-    });
-
-    var baseMaps = {
-        "Normal Map": normalMapLayer,
-        "Satellite Map": satelliteMapLayer
-    };
-
-    normalMapLayer.addTo(map); // Add the normal map layer by default
-
-    L.control.layers(baseMaps).addTo(map); // Add control for switching between map layers
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-    }).addTo(map);
-
-    var drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
-
-    var drawControl = new L.Control.Draw({
-        draw: {
-            polygon: {
-                allowIntersection: false,
-                showArea: true,
-                shapeOptions: {
-                    color: '#3388ff',
-                    weight: 2,
-                    fillColor: '#3388ff',
-                    fillOpacity: 0.2
-                }
-            },
-            marker: false, // Disable marker drawing
-            circle: false,
-            circlemarker: false,
-            polyline: false,
-            rectangle: false},
-        edit: {
-            featureGroup: drawnItems,
-            remove: true
-        }
-    });
-
-    map.addControl(drawControl);
-
-    map.on('draw:created', function (e) {
-        var type = e.layerType,
-            layer = e.layer;
-
-        if (type === 'polygon') {
-            drawnItems.addLayer(layer);
-        }
-    });
-
-    function toggleDrawControl() {
-        if (map.hasLayer(drawControl)) {
-            map.removeControl(drawControl);
-        } else {
-            map.addControl(drawControl);
-        }
-    }
-
-    function clearPoints() {
-        drawnItems.clearLayers();
-    }
-
-    function calculateArea() {
-        var layers = drawnItems.getLayers();
-        if (layers.length === 0) {
-            alert("Please draw a polygon first.");
-            return;
-        }
-        var area = L.GeometryUtil.geodesicArea(layers[0].getLatLngs()[0]);
-        var areaSqMeters = area.toFixed(2);
-        var areaHectares = (area / 10000).toFixed(2);
-        var areaAcres = (area / 4046.86).toFixed(2);
-        var areaSqFeet = (area * 10.7639).toFixed(2);
-        alert("Area: " + areaSqMeters + " square meters\n" +
-            "Area: " + areaHectares + " hectares\n" +
-            "Area: " + areaAcres + " acres\n" +
-            "Area: " + areaSqFeet + " square feet");
-    }
-
-    var searchControl = L.Control.geocoder({
-        placeholder: "Search location...",
-        defaultMarkGeocode: false,
-        collapsed: false,
-        geocoder: L.Control.Geocoder.nominatim({
-            geocodingQueryParams: {
-                'viewbox': '-180,-90,180,90' // Restrict search to entire world
+      
+    <main>
+        <section id="abstract">
+            <h2>Abstract</h2>
+            <p> The Land Measurement Tool represents a significant advancement in the field of land surveying and management. Developed as a comprehensive software solution, this tool offers users a sophisticated platform for conducting accurate and efficient land measurements. Accessible via a user-friendly interface, the tool utilizes a combination of cutting-edge technologies, including GPS (Global Positioning System) and GIS (Geographic Information Systems), to ensure precise and reliable measurement outcomes. Key features of the Land Measurement Tool include the ability to input specific land parameters, analyze topographical data, and generate detailed measurement reports. The generated GPS coordinates will be converted into units of meter so that length of each side can be known. Heron formula is used to calculate the area of a land plotted on the Google Map. From the series of measurement, GPS measurement fall above the land</p>
+        </section>
+        <section id="introduction">
+            <h2>Introduction</h2>
+            <p> When we talk about measuring land, it's all about getting it right, quickly and accurately. As more and more industries need precise information about land, using the latest technology becomes really important. So, let us introduce you to our new land measuring app – it's going to shake things up in the land assessment world.Our app combines old methods with new technology. Whether you're an experienced land surveyor, a property developer, or a scientist studying the environment, our app is designed to meet your needs with accuracy and reliability.Forget about old-fashioned tools and slow manual measurements. Our app uses smart algorithms and satellite images to give you accurate measurements in no time. With these images and data, you can understand everything about the land – its shape, borders, and what's on it – helping you make smart decisions with confidence.</p>
+        </section>
+        <section id="problem">
+            <h2>Problem Statement</h2>
+            <p>
+                The traditional way of measuring the land is very cost effective and time consuming.  So why to measure the land by using the old methods like using measuring tape, foot count, etc. So why wasting the time on that method just use our website is  for effective result for land measurement In many regions, land measurement units vary significantly, leading to confusion and inefficiencies in property transactions. A standardized digital solution is needed to simplify land measurement, conversion, and management.
+               </p>
+        </section>
+        <section id="conclusion">
+            <h2>Conclusion</h2>
+            <p>Our land measurement system provides a comprehensive solution for users to accurately measure land areas, convert units, and integrate digital maps. The app's user-friendly interface and advanced features make it a valuable tool for professionals and enthusiasts alike. We have addressed user feedback to enhance the app's functionality and usability. Moving forward, we plan to continue improving the app by adding more features and integrating new technologies. We are grateful for the support of our stakeholders, developers, and users who have contributed to the success of this project."</p>
+        </section>
+        
+            <a href="map.html">
+                <button>Calculate Through Map</button>
+            </a>
+        
+            <div style="margin-top: 10px;"></div>
+            <a href="calculater.html">
+                <button>Calculate Through Calculater</button>
+            </a>
+        
+    </main>
+    <footer>
+        © 2024 Land Measurement Tool. All rights reserved.
+    </footer>
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest', duration: 1000 });
             }
-        }),
-        position: 'topright',
-        expand: 'click'
-    }).addTo(map);
-
-    searchControl.on('markgeocode', function (e) {
-        map.fitBounds(e.geocode.bbox);
-    });
-
-    // Function to search for a location
-    function searchLocation() {
-        var query = document.getElementById('searchInput').value;searchControl.geocode(query);
-    }
-
-    // Function to show the current location
-    function showCurrentLocation() {
-        map.locate({ setView: true, maxZoom: 16 });
-    }
-
-    // Function to handle location found
-    function onLocationFound(e) {
-        var radius = e.accuracy / 2;
-
-        L.marker(e.latlng).addTo(map)
-            .bindPopup("You are within " + radius + " meters from this point").openPopup();
-
-        L.circle(e.latlng, radius).addTo(map);
-    }
-
-    // Function to handle location error
-    function onLocationError(e) {
-        alert(e.message);
-    }
-
-    map.on('locationfound', onLocationFound);
-    map.on('locationerror', onLocationError);
-</script>
-
+    </script>
 </body>
 </html>
